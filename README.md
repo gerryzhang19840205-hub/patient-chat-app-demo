@@ -75,6 +75,12 @@ AUDIO_OUTPUT_DIR=app/data/audio
 
 Audio input is transcribed with `faster-whisper`, and the reply is synthesized back to an `mp3` file.
 
+Note: `faster-whisper` typically needs a local `ffmpeg` installation for audio decoding. If speech-to-text fails on your machine, install it first:
+
+```bash
+brew install ffmpeg
+```
+
 ## Run
 
 ```bash
