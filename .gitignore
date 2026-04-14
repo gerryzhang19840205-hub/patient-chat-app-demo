@@ -1,0 +1,13 @@
+.DS_Store
+.env
+.env.local
+.env.*.local
+.pytest_cache/
+.ruff_cache/
+.venv/
+.venv-*/
+__pycache__/
+app/data/*.db
+app/data/audio/*
+!app/data/.gitkeep
+!app/data/audio/.gitkeep
