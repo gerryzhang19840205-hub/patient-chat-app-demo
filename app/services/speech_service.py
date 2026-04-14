@@ -1,3 +1,4 @@
+import logging
 from functools import lru_cache
 from pathlib import Path
 
@@ -6,6 +7,9 @@ from faster_whisper import WhisperModel
 from gtts import gTTS
 
 from app.config import get_settings
+
+
+logger = logging.getLogger(__name__)
 
 
 class SpeechServiceError(RuntimeError):
@@ -50,6 +54,12 @@ class SpeechService:
             tts = gTTS(text=text, lang=self.tts_language)
             tts.save(str(output_path))
         except Exception as exc:
+            logger.exception(
+                "Failed to synthesize speech: lang=%s output_path=%s text_length=%s",
+                self.tts_language,
+                output_path,
+                len(text),
+            )
             raise SpeechServiceError("Failed to synthesize speech.") from exc
         return output_path
 

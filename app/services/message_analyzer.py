@@ -1,3 +1,5 @@
+import logging
+
 from app.models.message import (
     MessageAnalyzeRequest,
     MessageAnalyzeResponse,
@@ -11,6 +13,9 @@ from app.services.reason_builder import build_reason
 from app.services.reply_builder import build_reply
 from app.services.speech_service import speech_service
 from app.services.urgency import detect_urgent
+
+
+logger = logging.getLogger(__name__)
 
 
 def analyze_message(payload: MessageAnalyzeRequest) -> MessageAnalyzeResponse:
@@ -70,9 +75,16 @@ def analyze_message(payload: MessageAnalyzeRequest) -> MessageAnalyzeResponse:
         reply_audio_filename=None,
         reply_audio_url=None,
     )
-    reply_audio_path = speech_service.build_reply_audio_path(payload.session_id, payload.id)
-    speech_service.synthesize_text_to_mp3(reply, reply_audio_path)
-    response.reply_audio_filename = reply_audio_path.name
-    response.reply_audio_url = f"/api/messages/audio/{reply_audio_path.name}"
+    try:
+        reply_audio_path = speech_service.build_reply_audio_path(payload.session_id, payload.id)
+        speech_service.synthesize_text_to_mp3(reply, reply_audio_path)
+        response.reply_audio_filename = reply_audio_path.name
+        response.reply_audio_url = f"/api/messages/audio/{reply_audio_path.name}"
+    except Exception:
+        logger.exception(
+            "Reply audio synthesis failed for session_id=%s message_id=%s; returning text response only.",
+            payload.session_id,
+            payload.id,
+        )
     save_outbound_message(response)
     return response

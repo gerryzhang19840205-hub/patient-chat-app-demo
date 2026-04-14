@@ -88,6 +88,29 @@ def test_analyze_audio_upload() -> None:
     assert audio_response.content == b"fake-mp3-data"
 
 
+def test_analyze_audio_upload_when_tts_fails(monkeypatch) -> None:
+    from app.services import speech_service as speech_module
+
+    def failing_synthesize_text_to_mp3(text, output_path):
+        raise RuntimeError("tts failed")
+
+    monkeypatch.setattr(speech_module.speech_service, "synthesize_text_to_mp3", failing_synthesize_text_to_mp3)
+
+    response = client.post(
+        "/api/messages/analyze",
+        data={"sessionId": "S007", "id": "C201"},
+        files={"audioFile": ("sample.mp3", BytesIO(b"fake-audio-bytes"), "audio/mpeg")},
+    )
+
+    body = response.json()
+
+    assert response.status_code == 200
+    assert body["sessionId"] == "S007"
+    assert body["inputMode"] == "audio"
+    assert body["replyAudioFilename"] is None
+    assert body["replyAudioUrl"] is None
+
+
 def test_analyze_urgent_clinical_message() -> None:
     response = client.post(
         "/api/messages/analyze",
